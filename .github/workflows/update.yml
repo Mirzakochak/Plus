@@ -1,0 +1,31 @@
+name: Auto Update V2Ray Sublink
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # اجرا به صورت خودکار هر ۶ ساعت یک‌بار
+  workflow_dispatch: # اضافه کردن این خط بهت اجازه میده دستی هم اجراش کنی
+
+jobs:
+  update-sub:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Run Fetch Script
+      run: python main.py
+
+    - name: Commit and Push Changes
+      run: |
+        git config --local user.email "actions@github.com"
+        git config --local user.name "GitHub Actions"
+        git add sub.txt
+        # این خط چک می‌کنه اگه فایلی تغییر کرده بود کامیت کنه، در غیر اینصورت ارور نده
+        git diff --quiet && git diff --staged --quiet || git commit -m "Auto Update Links: $(date -u +'%Y-%m-%d %H:%M:%S')"
+        git push
