@@ -4,23 +4,16 @@ import random
 import base64
 import json
 
-# لیست منابع جدید، قدرتمند و آپدیت‌شونده (فقط VLESS و VMess)
+# بهترین سورس‌های تست‌شده (مخلوطی از خام و Base64)
 SOURCES = [
-    # سورس‌های Danialsamadi (آپدیت‌های سریع و فیلتر شده)
-    "https://raw.githubusercontent.com/Danialsamadi/v2go/main/Splitted-By-Protocol/vless.txt",
-    "https://raw.githubusercontent.com/Danialsamadi/v2go/main/Splitted-By-Protocol/vmess.txt",
-    
-    # سورس‌های ebrasha (آپدیت هر ۱۵ دقیقه)
-    "https://raw.githubusercontent.com/ebrasha/free-v2ray-public-list/main/vless_configs.txt",
-    "https://raw.githubusercontent.com/ebrasha/free-v2ray-public-list/main/vmess_configs.txt",
-    
-    # سورس‌های Mahdibland (کالکشن عظیم)
-    "https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/sub/splitted/vless.txt",
-    "https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/sub/splitted/vmess.txt"
+    "https://raw.githubusercontent.com/barry-far/V2ray-Config/main/Sub1.txt",
+    "https://raw.githubusercontent.com/barry-far/V2ray-Config/main/Sub2.txt",
+    "https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/mix",
+    "https://raw.githubusercontent.com/soroushmirzaei/telegram-configs-collector/main/protocols/vless",
+    "https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/Eternity"
 ]
 
 def clean_name(link, index):
-    """تغییر نام کانفیگ‌ها به اسم اختصاصی همراه با ایموجی خفن"""
     new_name = f"⚡ Mirzakochak ⚡ | {index}"
     
     if link.startswith('vless://'):
@@ -45,25 +38,39 @@ def clean_name(link, index):
             
     return link
 
+def decode_content(text):
+    """تشخیص هوشمند و باز کردن فایل‌های Base64"""
+    if "vless://" in text or "vmess://" in text:
+        return text.splitlines()
+    try:
+        # اگر متن Base64 باشد آن را دیکود می‌کند
+        padded = text.strip() + "=" * ((4 - len(text.strip()) % 4) % 4)
+        decoded = base64.b64decode(padded).decode('utf-8')
+        return decoded.splitlines()
+    except:
+        return text.splitlines()
+
 def fetch_configs():
     all_links = set()
     
     for url in SOURCES:
         try:
             req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req, timeout=10) as response:
-                lines = response.read().decode('utf-8').splitlines()
+            with urllib.request.urlopen(req, timeout=15) as response:
+                content = response.read().decode('utf-8')
+                lines = decode_content(content)
+                
                 for line in lines:
                     line = line.strip()
                     if line.startswith(('vless://', 'vmess://')):
                         all_links.add(line)
+            print(f"Success: Fetched from {url}")
         except Exception as e:
             print(f"Error fetching from {url}: {e}")
             
     links_list = list(all_links)
-    random.shuffle(links_list) # بُر زدن تا از همه منابع داشته باشیم
+    random.shuffle(links_list)
     
-    # گلچین کردن ۲۵۰ تا از بهترین‌ها
     final_links_raw = links_list[:250]
     
     cleaned_links = []
@@ -74,7 +81,7 @@ def fetch_configs():
     with open("sub.txt", "w", encoding="utf-8") as f:
         f.write("\n".join(cleaned_links))
         
-    print(f"Successfully saved {len(cleaned_links)} high-quality VLESS/VMess configs to sub.txt")
+    print(f"✅ Successfully saved {len(cleaned_links)} configs to sub.txt")
 
 if __name__ == "__main__":
     fetch_configs()
