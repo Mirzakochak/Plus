@@ -4,25 +4,30 @@ import random
 import base64
 import json
 
-# لیست منابع خام
+# لیست منابع جدید، قدرتمند و آپدیت‌شونده (فقط VLESS و VMess)
 SOURCES = [
-    "https://raw.githubusercontent.com/barry-far/V2ray-Config/main/Splitted-By-Protocol/vless.txt",
-    "https://raw.githubusercontent.com/barry-far/V2ray-Config/main/Splitted-By-Protocol/vmess.txt",
-    "https://raw.githubusercontent.com/ebrasha/free-v2ray-public-list/main/all_links.txt"
+    # سورس‌های Danialsamadi (آپدیت‌های سریع و فیلتر شده)
+    "https://raw.githubusercontent.com/Danialsamadi/v2go/main/Splitted-By-Protocol/vless.txt",
+    "https://raw.githubusercontent.com/Danialsamadi/v2go/main/Splitted-By-Protocol/vmess.txt",
+    
+    # سورس‌های ebrasha (آپدیت هر ۱۵ دقیقه)
+    "https://raw.githubusercontent.com/ebrasha/free-v2ray-public-list/main/vless_configs.txt",
+    "https://raw.githubusercontent.com/ebrasha/free-v2ray-public-list/main/vmess_configs.txt",
+    
+    # سورس‌های Mahdibland (کالکشن عظیم)
+    "https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/sub/splitted/vless.txt",
+    "https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/sub/splitted/vmess.txt"
 ]
 
 def clean_name(link, index):
     """تغییر نام کانفیگ‌ها به اسم اختصاصی همراه با ایموجی خفن"""
-    # 👈 اینجا ظاهر اسم رو درست کردیم: ایموجی دو طرف اسم قرار میگیره و شماره آخرش میاد
     new_name = f"⚡ Mirzakochak ⚡ | {index}"
     
-    # پردازش پروتکل VLESS
     if link.startswith('vless://'):
         base_link = link.split('#')[0]
         safe_name = urllib.parse.quote(new_name)
         return f"{base_link}#{safe_name}"
         
-    # پردازش پروتکل VMess (دیکود و انکود مجدد JSON)
     elif link.startswith('vmess://'):
         try:
             base64_str = link[8:]
@@ -50,16 +55,15 @@ def fetch_configs():
                 lines = response.read().decode('utf-8').splitlines()
                 for line in lines:
                     line = line.strip()
-                    # 👈 فقط و فقط پروتکل‌های VLESS و VMess رو قبول می‌کنه
                     if line.startswith(('vless://', 'vmess://')):
                         all_links.add(line)
         except Exception as e:
             print(f"Error fetching from {url}: {e}")
             
     links_list = list(all_links)
-    random.shuffle(links_list)
+    random.shuffle(links_list) # بُر زدن تا از همه منابع داشته باشیم
     
-    # 👈 تعداد کل کانفیگ‌ها رو به دقیقاً ۲۵۰ عدد محدود کردیم
+    # گلچین کردن ۲۵۰ تا از بهترین‌ها
     final_links_raw = links_list[:250]
     
     cleaned_links = []
@@ -70,7 +74,7 @@ def fetch_configs():
     with open("sub.txt", "w", encoding="utf-8") as f:
         f.write("\n".join(cleaned_links))
         
-    print(f"Successfully saved {len(cleaned_links)} VLESS/VMess configs to sub.txt")
+    print(f"Successfully saved {len(cleaned_links)} high-quality VLESS/VMess configs to sub.txt")
 
 if __name__ == "__main__":
     fetch_configs()
